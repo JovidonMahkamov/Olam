@@ -1,0 +1,18 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_2263_1978" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="1" y="1" width="21" height="21">
+<path d="M10.5 19C15.1945 19 19 15.1945 19 10.5C19 5.8055 15.1945 2 10.5 2C5.8055 2 2 5.8055 2 10.5C2 15.1945 5.8055 19 10.5 19Z" fill="white" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+<path d="M13.3285 7.1715C12.9574 6.79963 12.5165 6.50471 12.0311 6.30367C11.5457 6.10264 11.0254 5.99944 10.5 6C9.97463 5.99944 9.45432 6.10264 8.96893 6.30367C8.48354 6.50471 8.04263 6.79963 7.67151 7.1715" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16.611 16.6111L20.8535 20.8536" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</mask>
+<g mask="url(#mask0_2263_1978)">
+<path d="M0 0H24V24H0V0Z" fill="url(#paint0_linear_2263_1978)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_2263_1978" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+<stop stop-color="#AF5400"/>
+<stop offset="0.3" stop-color="#DDA337"/>
+<stop offset="0.8" stop-color="#D18800"/>
+<stop offset="1" stop-color="#AF5400"/>
+</linearGradient>
+</defs>
+</svg>

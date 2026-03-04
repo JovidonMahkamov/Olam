@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:olam/features/home/presentation/pages/tovar_qaytarish_page.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback onOpenSales;
@@ -38,7 +39,12 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: 30.h),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TovarQaytarishPage()),
+                  );
+                },
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: Image.asset(

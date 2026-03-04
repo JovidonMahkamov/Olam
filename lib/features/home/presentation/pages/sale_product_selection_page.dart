@@ -84,7 +84,7 @@ class _SaleProductSelectionPageState extends State<SaleProductSelectionPage> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new),
+          icon: const Icon(Icons.arrow_back_ios_new,color: Colors.white,),
         ),
       ),
       body: Column(

@@ -1,16 +1,14 @@
 class ReturnSelectedItemModel {
-  final String purchaseId; // history list item id
+  final String sotuvId;
   final String productId;
   final String productName;
   final String productCode;
-  final String imageUrl;
+  final String? imageUrl;
 
-  // qaytariladigan miqdorlar (faqat bittasi >0 bo‘lsin)
-  final int returnPachka;
-  final int returnDona;
-  final int returnMetr;
+  final double returnPachka;
+  final double returnDona;
+  final double returnMetr;
 
-  // qaytarish unit narxlari (faqat tanlangan unit >0)
   final double pricePachkaUsd;
   final double priceDonaUsd;
   final double priceMetrUsd;
@@ -18,11 +16,11 @@ class ReturnSelectedItemModel {
   final double returnTotalUsd;
 
   const ReturnSelectedItemModel({
-    required this.purchaseId,
+    required this.sotuvId,
     required this.productId,
     required this.productName,
     required this.productCode,
-    required this.imageUrl,
+    this.imageUrl,
     required this.returnPachka,
     required this.returnDona,
     required this.returnMetr,

@@ -1,48 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:olam/features/home/presentation/widgets/return_selected_item_model.dart';
-
-class ReturnablePurchaseVM {
-  // Sizning history itemingizdan keladigan data (prefill uchun)
-  final String purchaseId;
-  final String productId;
-  final String name;
-  final String code;
-  final String imageUrl;
-
-  final int boughtPachka;
-  final int boughtDona;
-  final int boughtMetr;
-
-  final double sellPricePachkaUsd;
-  final double sellPriceDonaUsd;
-  final double sellPriceMetrUsd;
-
-  const ReturnablePurchaseVM({
-    required this.purchaseId,
-    required this.productId,
-    required this.name,
-    required this.code,
-    required this.imageUrl,
-    required this.boughtPachka,
-    required this.boughtDona,
-    required this.boughtMetr,
-    required this.sellPricePachkaUsd,
-    required this.sellPriceDonaUsd,
-    required this.sellPriceMetrUsd,
-  });
-}
+import 'package:flutter/services.dart';
+import 'return_selected_item_model.dart';
+import 'customer_purchase_model.dart';
 
 class ReturnPriceAdjustDialog extends StatefulWidget {
-  final ReturnablePurchaseVM purchase;
+  final CustomerPurchaseModel purchase;
 
-  const ReturnPriceAdjustDialog({
-    super.key,
-    required this.purchase,
-  });
+  const ReturnPriceAdjustDialog({super.key, required this.purchase});
 
   static Future<ReturnSelectedItemModel?> show(
       BuildContext context, {
-        required ReturnablePurchaseVM purchase,
+        required CustomerPurchaseModel purchase,
       }) {
     return showDialog<ReturnSelectedItemModel>(
       context: context,
@@ -57,196 +25,90 @@ class ReturnPriceAdjustDialog extends StatefulWidget {
 }
 
 class _ReturnPriceAdjustDialogState extends State<ReturnPriceAdjustDialog> {
-  final _formKey = GlobalKey<FormState>();
-
   late final TextEditingController _pachkaCtrl;
-  late final TextEditingController _donaCtrl;
   late final TextEditingController _metrCtrl;
-
-  // oldingi (sotilgan) narxlar (readonly)
-  late final TextEditingController _oldPricePachkaCtrl;
-  late final TextEditingController _oldPriceDonaCtrl;
-  late final TextEditingController _oldPriceMetrCtrl;
-
-  // qaytarish narxlari (editable) - default sotilgan narx bilan keladi
-  late final TextEditingController _returnPricePachkaCtrl;
-  late final TextEditingController _returnPriceDonaCtrl;
-  late final TextEditingController _returnPriceMetrCtrl;
-
+  late final TextEditingController _narxMetrCtrl;
+  late final TextEditingController _narxPachkaCtrl;
   late final TextEditingController _summaCtrl;
 
   @override
   void initState() {
     super.initState();
-
-    // Qaytarish miqdorlari default 0
-    _pachkaCtrl = TextEditingController(text: "0");
-    _donaCtrl = TextEditingController(text: "0");
-    _metrCtrl = TextEditingController(text: "0");
-
-    // Sotilgandagi narxlar
-    _oldPricePachkaCtrl = TextEditingController(text: widget.purchase.sellPricePachkaUsd.toStringAsFixed(0));
-    _oldPriceDonaCtrl = TextEditingController(text: widget.purchase.sellPriceDonaUsd.toStringAsFixed(0));
-    _oldPriceMetrCtrl = TextEditingController(text: widget.purchase.sellPriceMetrUsd.toStringAsFixed(0));
-
-    // Qaytarish narxlari default sotilgandagi narx bilan
-    _returnPricePachkaCtrl = TextEditingController(text: widget.purchase.sellPricePachkaUsd.toStringAsFixed(0));
-    _returnPriceDonaCtrl = TextEditingController(text: widget.purchase.sellPriceDonaUsd.toStringAsFixed(0));
-    _returnPriceMetrCtrl = TextEditingController(text: widget.purchase.sellPriceMetrUsd.toStringAsFixed(0));
-
-    _summaCtrl = TextEditingController(text: "0");
+    final p = widget.purchase;
+    _pachkaCtrl    = TextEditingController(text: '0');
+    _metrCtrl      = TextEditingController(text: '0');
+    _narxMetrCtrl  = TextEditingController(text: p.narxMetrUsd > 0 ? p.narxMetrUsd.toStringAsFixed(2) : '0');
+    _narxPachkaCtrl= TextEditingController(text: p.narxPachkaUsd > 0 ? p.narxPachkaUsd.toStringAsFixed(2) : '0');
+    _summaCtrl     = TextEditingController(text: '0');
 
     _pachkaCtrl.addListener(_recalc);
-    _donaCtrl.addListener(_recalc);
     _metrCtrl.addListener(_recalc);
-    _returnPricePachkaCtrl.addListener(_recalc);
-    _returnPriceDonaCtrl.addListener(_recalc);
-    _returnPriceMetrCtrl.addListener(_recalc);
+    _narxMetrCtrl.addListener(_recalc);
+    _narxPachkaCtrl.addListener(_recalc);
   }
 
   @override
   void dispose() {
     _pachkaCtrl.dispose();
-    _donaCtrl.dispose();
     _metrCtrl.dispose();
-
-    _oldPricePachkaCtrl.dispose();
-    _oldPriceDonaCtrl.dispose();
-    _oldPriceMetrCtrl.dispose();
-
-    _returnPricePachkaCtrl.dispose();
-    _returnPriceDonaCtrl.dispose();
-    _returnPriceMetrCtrl.dispose();
-
+    _narxMetrCtrl.dispose();
+    _narxPachkaCtrl.dispose();
     _summaCtrl.dispose();
     super.dispose();
   }
 
-  int _toInt(String v) => int.tryParse(v.trim()) ?? 0;
   double _toDouble(String v) => double.tryParse(v.trim().replaceAll(',', '.')) ?? 0;
 
-  bool get _hasPachka => _toInt(_pachkaCtrl.text) > 0;
-  bool get _hasDona => _toInt(_donaCtrl.text) > 0;
-  bool get _hasMetr => _toInt(_metrCtrl.text) > 0;
-
-  int get _unitCount => (_hasPachka ? 1 : 0) + (_hasDona ? 1 : 0) + (_hasMetr ? 1 : 0);
-
   void _recalc() {
-    final rp = _toInt(_pachkaCtrl.text);
-    final rd = _toInt(_donaCtrl.text);
-    final rm = _toInt(_metrCtrl.text);
-
-    final pp = _toDouble(_returnPricePachkaCtrl.text);
-    final pd = _toDouble(_returnPriceDonaCtrl.text);
-    final pm = _toDouble(_returnPriceMetrCtrl.text);
-
-    final total = (rp * pp) + (rd * pd) + (rm * pm);
-    _summaCtrl.text = total.toStringAsFixed(0);
+    final pachka   = _toDouble(_pachkaCtrl.text);
+    final metr     = _toDouble(_metrCtrl.text);
+    final narxMetr = _toDouble(_narxMetrCtrl.text);
+    final narxPachka = _toDouble(_narxPachkaCtrl.text);
+    final total = (pachka * narxPachka) + (metr * narxMetr);
+    _summaCtrl.text = total.toStringAsFixed(2);
     setState(() {});
   }
 
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final p        = widget.purchase;
+    final pachka   = _toDouble(_pachkaCtrl.text);
+    final metr     = _toDouble(_metrCtrl.text);
+    final narxMetr = _toDouble(_narxMetrCtrl.text);
+    final narxPachka = _toDouble(_narxPachkaCtrl.text);
 
-    final rp = _toInt(_pachkaCtrl.text);
-    final rd = _toInt(_donaCtrl.text);
-    final rm = _toInt(_metrCtrl.text);
-
-    if (rp == 0 && rd == 0 && rm == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kamida bitta miqdor kiriting (pachka/dona/metr)")),
-      );
+    if (pachka == 0 && metr == 0) {
+      _toast("Kamida bitta miqdor kiriting");
+      return;
+    }
+    if (pachka > p.qtyPachka) {
+      _toast("Pachka ko'pi bilan ${p.qtyPachka} bo'lishi mumkin");
+      return;
+    }
+    if (metr > p.qtyMetr) {
+      _toast("Metr ko'pi bilan ${p.qtyMetr} bo'lishi mumkin");
       return;
     }
 
-    if (_unitCount != 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Faqat bitta tur tanlang: pachka yoki dona yoki metr")),
-      );
-      return;
-    }
+    final total = (pachka * narxPachka) + (metr * narxMetr);
 
-    // ❗ Qaytarish miqdori sotib olingandan oshmasin
-    if (rp > widget.purchase.boughtPachka) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Pachka ko‘pi bilan ${widget.purchase.boughtPachka} ta bo‘lishi mumkin")),
-      );
-      return;
-    }
-    if (rd > widget.purchase.boughtDona) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Dona ko‘pi bilan ${widget.purchase.boughtDona} ta bo‘lishi mumkin")),
-      );
-      return;
-    }
-    if (rm > widget.purchase.boughtMetr) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Metr ko‘pi bilan ${widget.purchase.boughtMetr} bo‘lishi mumkin")),
-      );
-      return;
-    }
-
-    final pp = _toDouble(_returnPricePachkaCtrl.text);
-    final pd = _toDouble(_returnPriceDonaCtrl.text);
-    final pm = _toDouble(_returnPriceMetrCtrl.text);
-
-    // faqat tanlangan unit narxi > 0 bo‘lsin, qolganlari 0 bo‘lsin
-    if (_hasPachka && (pp <= 0 || pd != 0 || pm != 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pachka tanlansa: pachka narx > 0, dona/metr narx = 0 bo‘lsin")),
-      );
-      return;
-    }
-    if (_hasDona && (pd <= 0 || pp != 0 || pm != 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Dona tanlansa: dona narx > 0, pachka/metr narx = 0 bo‘lsin")),
-      );
-      return;
-    }
-    if (_hasMetr && (pm <= 0 || pp != 0 || pd != 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Metr tanlansa: metr narx > 0, dona/pachka narx = 0 bo‘lsin")),
-      );
-      return;
-    }
-
-    final total = (rp * pp) + (rd * pd) + (rm * pm);
-
-    Navigator.pop(
-      context,
-      ReturnSelectedItemModel(
-        purchaseId: widget.purchase.purchaseId,
-        productId: widget.purchase.productId,
-        productName: widget.purchase.name,
-        productCode: widget.purchase.code,
-        imageUrl: widget.purchase.imageUrl,
-        returnPachka: rp,
-        returnDona: rd,
-        returnMetr: rm,
-        pricePachkaUsd: pp,
-        priceDonaUsd: pd,
-        priceMetrUsd: pm,
-        returnTotalUsd: total,
-      ),
-    );
+    Navigator.pop(context, ReturnSelectedItemModel(
+      sotuvId:       p.id,
+      productId:     p.productId,
+      productName:   p.productName,
+      productCode:   p.productCode,
+      imageUrl:      p.imageUrl,
+      returnPachka:  pachka,
+      returnDona:    0,
+      returnMetr:    metr,
+      pricePachkaUsd: narxPachka,
+      priceDonaUsd:  0,
+      priceMetrUsd:  narxMetr,
+      returnTotalUsd: total,
+    ));
   }
 
-  String? _qtyValidator(String? v) {
-    final t = (v ?? '').trim();
-    if (t.isEmpty) return null;
-    final n = int.tryParse(t);
-    if (n == null) return "Faqat son kiriting";
-    if (n < 0) return "Manfiy son bo‘lmaydi";
-    return null;
-  }
-
-  String? _priceValidator(String? v) {
-    final t = (v ?? '').trim();
-    if (t.isEmpty) return "Narx kiriting";
-    final d = double.tryParse(t.replaceAll(',', '.'));
-    if (d == null) return "To‘g‘ri narx kiriting";
-    if (d < 0) return "Manfiy narx bo‘lmaydi";
-    return null;
+  void _toast(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -254,135 +116,139 @@ class _ReturnPriceAdjustDialogState extends State<ReturnPriceAdjustDialog> {
     final p = widget.purchase;
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 10),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(p.productName,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.redAccent),
+                  ),
+                ],
+              ),
+
+              // Sotib olingan miqdor
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF8E7),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE7C66A).withOpacity(0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        "${p.name}  ${p.code}",
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF4A4A4A)),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.close, color: Colors.redAccent),
-                      ),
-                    ),
+                    const Text("Sotib olingan:",
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+                    const SizedBox(height: 4),
+                    if (p.qtyMetr > 0)
+                      Text("Metr: ${p.qtyMetr}",
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                    if (p.qtyPachka > 0)
+                      Text("Pachka: ${p.qtyPachka}",
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Text("Jami: \$${p.jamiUsd.toStringAsFixed(2)}",
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ],
                 ),
-                const SizedBox(height: 12),
+              ),
 
-                // old info
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Sotib olingan: pachka ${p.boughtPachka}, dona ${p.boughtDona}, metr ${p.boughtMetr}",
-                    style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                _Label("Qaytariladigan miqdor (Pachka)"),
+              // Metr
+              if (p.qtyMetr > 0) ...[
+                const Text("Qaytariladigan metr",
+                    style: TextStyle(fontSize: 13, color: Colors.black54)),
                 const SizedBox(height: 6),
-                _Field(controller: _pachkaCtrl, hint: "0", keyboardType: TextInputType.number, validator: _qtyValidator),
-                const SizedBox(height: 10),
-
-                _Label("Qaytariladigan miqdor (Dona)"),
-                const SizedBox(height: 6),
-                _Field(controller: _donaCtrl, hint: "0", keyboardType: TextInputType.number, validator: _qtyValidator),
-                const SizedBox(height: 10),
-
-                _Label("Qaytariladigan miqdor (Metr)"),
-                const SizedBox(height: 6),
-                _Field(controller: _metrCtrl, hint: "0", keyboardType: TextInputType.number, validator: _qtyValidator),
-
-                const SizedBox(height: 14),
-                const Divider(height: 1),
-                const SizedBox(height: 12),
-
-                _Label("Sotilgandagi narxlar (readonly)"),
-                const SizedBox(height: 8),
-                _Field(controller: _oldPriceMetrCtrl, hint: "Metr (old)", readOnly: true),
-                const SizedBox(height: 8),
-                _Field(controller: _oldPriceDonaCtrl, hint: "Dona (old)", readOnly: true),
-                const SizedBox(height: 8),
-                _Field(controller: _oldPricePachkaCtrl, hint: "Pachka (old)", readOnly: true),
-
-                const SizedBox(height: 14),
-                _Label("Qaytarish narxlari (o‘zgartirish mumkin)"),
-                const SizedBox(height: 8),
                 _Field(
-                  controller: _returnPriceMetrCtrl,
-                  hint: "Metr narxi",
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: _priceValidator,
+                  controller: _metrCtrl,
+                  hint: "0",
+                  suffix: "metr (max ${p.qtyMetr})",
                 ),
-                const SizedBox(height: 8),
-                _Field(
-                  controller: _returnPriceDonaCtrl,
-                  hint: "Dona narxi",
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: _priceValidator,
-                ),
-                const SizedBox(height: 8),
-                _Field(
-                  controller: _returnPricePachkaCtrl,
-                  hint: "Pachka narxi",
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: _priceValidator,
-                ),
-
                 const SizedBox(height: 10),
-                _Label("Qaytarish summasi"),
+                const Text("Narx (metr)",
+                    style: TextStyle(fontSize: 13, color: Colors.black54)),
                 const SizedBox(height: 6),
-                _Field(controller: _summaCtrl, hint: "0", readOnly: true),
-
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: const Color(0xFFF4C747),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    ),
-                    child: const Text("Saqlash", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  ),
-                ),
+                _Field(controller: _narxMetrCtrl, hint: "0", suffix: "\$"),
+                const SizedBox(height: 12),
               ],
-            ),
+
+              // Pachka
+              if (p.qtyPachka > 0) ...[
+                const Text("Qaytariladigan pachka",
+                    style: TextStyle(fontSize: 13, color: Colors.black54)),
+                const SizedBox(height: 6),
+                _Field(
+                  controller: _pachkaCtrl,
+                  hint: "0",
+                  suffix: "pachka (max ${p.qtyPachka})",
+                ),
+                const SizedBox(height: 10),
+                const Text("Narx (pachka)",
+                    style: TextStyle(fontSize: 13, color: Colors.black54)),
+                const SizedBox(height: 6),
+                _Field(controller: _narxPachkaCtrl, hint: "0", suffix: "\$"),
+                const SizedBox(height: 12),
+              ],
+
+              // Jami
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F3F3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Qaytarish summasi:",
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text("\$${_summaCtrl.text}",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Color(0xFFB96D00))),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF4C747),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
+                  ),
+                  child: const Text("Yaratish",
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Label extends StatelessWidget {
-  final String text;
-  const _Label(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 13, color: Color(0xFF666666), fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -391,31 +257,29 @@ class _Label extends StatelessWidget {
 class _Field extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
-  final bool readOnly;
-  final TextInputType? keyboardType;
-  final String? Function(String?)? validator;
+  final String? suffix;
 
-  const _Field({
-    required this.controller,
-    required this.hint,
-    this.readOnly = false,
-    this.keyboardType,
-    this.validator,
-  });
+  const _Field({required this.controller, required this.hint, this.suffix});
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return TextField(
       controller: controller,
-      readOnly: readOnly,
-      keyboardType: keyboardType,
-      validator: validator,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+      ],
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400),
+        suffixText: suffix,
         filled: true,
-        fillColor: readOnly ? const Color(0xFFF0F0F0) : const Color(0xFFF9F9F9),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        fillColor: const Color(0xFFF9F9F9),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFE5E5E5)),

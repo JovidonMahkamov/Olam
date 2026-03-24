@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:olam/features/home/presentation/widgets/pay_type.dart';
 import 'package:olam/features/kassa/presentation/widgets/kassa_balance_card.dart';
 import 'package:olam/features/kassa/presentation/widgets/kassa_dots_indicator.dart';
 
 @immutable
 class KassaBalanceCardData {
   final String title;
-  final double uzs;
   final double usd;
+  final int kassaId;
+  final PayType payType;
 
   const KassaBalanceCardData({
     required this.title,
-    required this.uzs,
     required this.usd,
+    required this.kassaId,
+    required this.payType,
   });
 }
 
 class KassaBalancePager extends StatefulWidget {
   final List<KassaBalanceCardData> cards;
-
-  /// qaysi kartada bosildi: Naqd/Terminal/Click
   final ValueChanged<KassaBalanceCardData> onAddIncomeTap;
 
   const KassaBalancePager({
@@ -46,7 +47,7 @@ class _KassaBalancePagerState extends State<KassaBalancePager> {
     return Column(
       children: [
         SizedBox(
-          height: 255,
+          height: 200,
           child: PageView.builder(
             controller: _ctrl,
             itemCount: widget.cards.length,

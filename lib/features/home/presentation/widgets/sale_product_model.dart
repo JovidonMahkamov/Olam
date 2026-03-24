@@ -9,9 +9,11 @@ class SaleProductModel {
   final String code;
   final String skuTag;
   final String? imageUrl;
-  final int stockPachka;
-  final int stockDona;
-  final int stockMetr;
+
+  final double stockPachka;
+  final double stockDona;
+  final double stockMetr;
+
   final double adminPriceMetrUsd;
   final double adminPriceDonaUsd;
   final double adminPricePachkaUsd;
@@ -38,25 +40,25 @@ class SaleProductModel {
     String? code,
     String? skuTag,
     String? imageUrl,
-    int? stockPachka,
-    int? stockDona,
-    int? stockMetr,
+    double? stockPachka,
+    double? stockDona,
+    double? stockMetr,
     double? adminPriceDonaUsd,
     double? adminPriceMetrUsd,
     double? adminPricePachkaUsd,
   }) {
     return SaleProductModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      code: code ?? this.code,
-      skuTag: skuTag ?? this.skuTag,
-      imageUrl: imageUrl ?? this.imageUrl,
-      stockPachka: stockPachka ?? this.stockPachka,
-      stockDona: stockDona ?? this.stockDona,
-      stockMetr: stockMetr ?? this.stockMetr,
-      adminPriceMetrUsd: adminPriceMetrUsd ?? this.adminPriceMetrUsd,
+      id:                  id ?? this.id,
+      name:                name ?? this.name,
+      code:                code ?? this.code,
+      skuTag:              skuTag ?? this.skuTag,
+      imageUrl:            imageUrl ?? this.imageUrl,
+      stockPachka:         stockPachka ?? this.stockPachka,
+      stockDona:           stockDona ?? this.stockDona,
+      stockMetr:           stockMetr ?? this.stockMetr,
+      adminPriceMetrUsd:   adminPriceMetrUsd ?? this.adminPriceMetrUsd,
       adminPricePachkaUsd: adminPricePachkaUsd ?? this.adminPricePachkaUsd,
-      adminPriceDonaUsd: adminPriceDonaUsd ?? this.adminPriceDonaUsd,
+      adminPriceDonaUsd:   adminPriceDonaUsd ?? this.adminPriceDonaUsd,
     );
   }
 }

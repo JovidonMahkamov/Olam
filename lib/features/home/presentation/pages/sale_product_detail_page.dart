@@ -81,7 +81,7 @@ class SaleProductDetailPage extends StatelessWidget {
             const SizedBox(height: 10),
             Center(
               child: Text(
-                "derjatel ${product.name}",
+                "${product.name}",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

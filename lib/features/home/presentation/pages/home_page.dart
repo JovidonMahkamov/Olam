@@ -4,10 +4,12 @@ import 'package:olam/features/home/presentation/pages/tovar_qaytarish_page.dart'
 
 class HomePage extends StatefulWidget {
   final VoidCallback onOpenSales;
+  final VoidCallback? onOpenQaytarish;
 
   const HomePage({
     super.key,
     required this.onOpenSales,
+    this.onOpenQaytarish,
   });
 
   @override
@@ -26,7 +28,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 20),
               GestureDetector(
-                onTap: widget.onOpenSales, //  endi route emas
+                onTap: widget.onOpenSales,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: Image.asset(
@@ -40,10 +42,14 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 30.h),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const TovarQaytarishPage()),
-                  );
+                  if (widget.onOpenQaytarish != null) {
+                    widget.onOpenQaytarish!();
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TovarQaytarishPage()),
+                    );
+                  }
                 },
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),

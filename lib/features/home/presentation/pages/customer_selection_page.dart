@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:olam/features/auth/presentation/widgets/text_field_wg.dart';
+import 'package:olam/features/home/domain/entity/mijoz_entity.dart';
+import 'package:olam/features/home/presentation/bloc/home_bloc.dart';
+import 'package:olam/features/home/presentation/bloc/home_event.dart';
+import 'package:olam/features/home/presentation/bloc/home_state.dart';
 import 'package:olam/features/home/presentation/widgets/create_customer_dialog.dart';
 import 'package:olam/features/home/presentation/widgets/create_customer_form_result.dart';
 import 'package:olam/features/home/presentation/widgets/sale_customer_model.dart';
@@ -7,7 +12,6 @@ import 'package:olam/features/home/presentation/widgets/sale_customer_model.dart
 class CustomerSelectionPage extends StatefulWidget {
   const CustomerSelectionPage({super.key});
 
-  /// Qulay ochish uchun
   static Future<SaleCustomerModel?> open(BuildContext context) {
     return Navigator.push<SaleCustomerModel>(
       context,
@@ -22,80 +26,34 @@ class CustomerSelectionPage extends StatefulWidget {
 class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  /// Hozircha demo data. Keyin API bilan almashtirish oson:
-  /// - _allCustomers = state.customers
-  /// - _applyFilter() ishlayveradi
-  final List<SaleCustomerModel> _allCustomers = [
-    const SaleCustomerModel(
-      id: 1,
-      fullName: 'Valijon',
-      phone: '+998 94 34 23',
-      address: 'Sergeli 3',
-      customerType: SaleCustomerType.mijoz,
-      socialType: 'Eski',
-    ),
-    const SaleCustomerModel(
-      id: 2,
-      fullName: 'Alijon',
-      phone: null,
-      address: null,
-      customerType: SaleCustomerType.mijoz,
-      socialType: 'Eski',
-    ),
-    const SaleCustomerModel(
-      id: 3,
-      fullName: 'Mahmudjon',
-      phone: null,
-      address: 'Sergeli 3',
-      customerType: SaleCustomerType.optom,
-      socialType: 'Eski',
-    ),
-    const SaleCustomerModel(
-      id: 4,
-      fullName: 'Sobirjon',
-      phone: '+998 94 34 23',
-      address: null,
-      customerType: SaleCustomerType.mijoz,
-      socialType: 'Eski',
-    ),
-  ];
-
-  late List<SaleCustomerModel> _filteredCustomers;
-
   @override
   void initState() {
     super.initState();
-    _filteredCustomers = List.of(_allCustomers);
-    _searchController.addListener(_applyFilter);
+    context.read<MijozlarBloc>().add(const GetMijozlarE());
+    _searchController.addListener(_onSearch);
   }
 
   @override
   void dispose() {
-    _searchController
-      ..removeListener(_applyFilter)
-      ..dispose();
+    _searchController.removeListener(_onSearch);
+    _searchController.dispose();
     super.dispose();
   }
 
-  void _applyFilter() {
-    final q = _searchController.text.trim().toLowerCase();
-
-    setState(() {
-      if (q.isEmpty) {
-        _filteredCustomers = List.of(_allCustomers);
-        return;
-      }
-
-      _filteredCustomers = _allCustomers.where((c) {
-        final inName = c.fullName.toLowerCase().contains(q);
-        final inPhone = (c.phone ?? '').toLowerCase().contains(q);
-        final inAddress = (c.address ?? '').toLowerCase().contains(q);
-        return inName || inPhone || inAddress;
-      }).toList();
-    });
+  void _onSearch() {
+    context.read<MijozlarBloc>().add(
+      GetMijozlarE(q: _searchController.text.trim()),
+    );
   }
 
-  void _onSelectCustomer(SaleCustomerModel customer) {
+  void _onSelectCustomer(MijozEntity mijoz) {
+    final customer = SaleCustomerModel(
+      id: mijoz.id,
+      fullName: mijoz.fish,
+      phone: mijoz.telefon,
+      address: mijoz.manzil,
+      customerType: SaleCustomerType.mijoz,
+    );
     Navigator.pop(context, customer);
   }
 
@@ -129,101 +87,110 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
         children: [
           const SizedBox(height: 4),
           Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: TextFieldWidgetBoard(
               height: 50,
               text: "Qidiruv",
               obscureText: false,
               readOnly: false,
-              prefixIcon: Icon(Icons.search, color: Colors.grey, size: 30),
+              prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 30),
+              controller: _searchController,
             ),
           ),
-
-          const SizedBox(height: 14),
-
-          /// List
+          const SizedBox(height: 4),
           Expanded(
-            child: _filteredCustomers.isEmpty
-                ? Center(
+            child: BlocBuilder<MijozlarBloc, MijozlarState>(
+              builder: (context, state) {
+                if (state is MijozlarLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is MijozlarError) {
+                  return Center(
+                    child: Text(state.message,
+                        style: const TextStyle(color: Colors.red)),
+                  );
+                }
+
+                final mijozlar =
+                state is MijozlarSuccess ? state.mijozlar : <MijozEntity>[];
+
+                if (mijozlar.isEmpty) {
+                  return Center(
                     child: Text(
                       "Mijoz topilmadi",
                       style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500),
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 100),
-                    itemCount: _filteredCustomers.length,
-                    itemBuilder: (context, index) {
-                      final customer = _filteredCustomers[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _CustomerCard(
-                          customer: customer,
-                          onTap: () => _onSelectCustomer(customer),
-                        ),
-                      );
-                    },
-                  ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 100),
+                  itemCount: mijozlar.length,
+                  itemBuilder: (context, index) {
+                    final mijoz = mijozlar[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _CustomerCard(
+                        mijoz: mijoz,
+                        onTap: () => _onSelectCustomer(mijoz),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
-
-      /// FAB (keyin customer create pagega o'tkazasan)
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final CreateCustomerFormResult? result =
-          await CreateCustomerDialog.show(context);
-
-          if (result == null) return;
-          if (!context.mounted) return;
-
-          final nextId = _allCustomers.isEmpty ? 1 : (_allCustomers.last.id + 1);
-
-          final newCustomer = SaleCustomerModel(
-            id: nextId,
-            fullName: result.fullName,
-            phone: result.phone.isEmpty ? null : result.phone,
-            address: result.address.isEmpty ? null : result.address,
-            socialType: result.socialType.isEmpty ? null : result.socialType,
-            customerType: result.customerType,
-          );
-
-          setState(() {
-            _allCustomers.insert(0, newCustomer); // tepaga qo‘shamiz
-          });
-
-          _applyFilter(); // qidiruv bo'lsa qayta filtrlasin
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("${newCustomer.fullName} qo‘shildi")),
-          );
-
-          //  Keyinchalik API bo‘lsa:
-          // context.read<CustomerCubit>().createCustomer(...);
-          // success bo'lsa listga qo'shasan yoki refresh qilasan
+      floatingActionButton: BlocListener<PostMijozBloc, PostMijozState>(
+        listener: (context, state) {
+          if (state is PostMijozSuccess) {
+            // Yangi mijoz qo'shildi — ro'yxatni yangilaymiz
+            context.read<MijozlarBloc>().add(const GetMijozlarE());
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("${state.mijoz.fish} qo'shildi")),
+            );
+          } else if (state is PostMijozError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
         },
-        elevation: 2,
-        shape: const CircleBorder(),
-        backgroundColor: const Color(0xFFF2C23A),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        child: FloatingActionButton(
+          onPressed: () async {
+            final CreateCustomerFormResult? result =
+            await CreateCustomerDialog.show(context);
+            if (result == null || !mounted) return;
+
+            context.read<PostMijozBloc>().add(PostMijozE(
+              fish: result.fullName,
+              telefon: result.phone.isEmpty ? null : result.phone,
+              manzil: result.address.isEmpty ? null : result.address,
+            ));
+          },
+          elevation: 2,
+          shape: const CircleBorder(),
+          backgroundColor: const Color(0xFFF2C23A),
+          child: const Icon(Icons.add, color: Colors.white, size: 30),
+        ),
       ),
     );
   }
 }
 
 class _CustomerCard extends StatelessWidget {
-  final SaleCustomerModel customer;
+  final MijozEntity mijoz;
   final VoidCallback onTap;
 
-  const _CustomerCard({required this.customer, required this.onTap});
+  const _CustomerCard({required this.mijoz, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final hasPhone = (customer.phone ?? '').trim().isNotEmpty;
-    final hasAddress = (customer.address ?? '').trim().isNotEmpty;
+    final hasPhone = (mijoz.telefon ?? '').trim().isNotEmpty;
+    final hasAddress = (mijoz.manzil ?? '').trim().isNotEmpty;
 
     return Material(
       color: Colors.transparent,
@@ -240,12 +207,11 @@ class _CustomerCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// top row
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      customer.fullName,
+                      mijoz.fish,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -255,61 +221,43 @@ class _CustomerCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    customer.typeLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
+                  if (mijoz.qarzdorlik < 0)
+                    Text(
+                      "${mijoz.qarzdorlik.abs().toStringAsFixed(0)}\$ qarz",
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600),
                     ),
-                  ),
                 ],
               ),
-
-              const SizedBox(height: 10),
-
-              /// phone row
-              Row(
-                children: [
-                  const Icon(Icons.phone, size: 13, color: Color(0xFFE0A52C)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      hasPhone ? customer.phone! : "",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+              if (hasPhone) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.phone, size: 13, color: Color(0xFFE0A52C)),
+                    const SizedBox(width: 8),
+                    Text(mijoz.telefon!,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade700)),
+                  ],
+                ),
+              ],
+              if (hasAddress) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on,
+                        size: 13, color: Color(0xFFE0A52C)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(mijoz.manzil!,
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade700)),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 6),
-
-              /// address row
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    size: 13,
-                    color: Color(0xFFE0A52C),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      hasAddress ? customer.address! : "",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

@@ -2,4 +2,5 @@ class RouteNames {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String bottomNavBar = '/bottomNavBar';
+  static const String customerPage = '/customerPage';
 }

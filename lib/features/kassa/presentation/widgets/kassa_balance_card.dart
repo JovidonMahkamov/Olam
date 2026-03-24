@@ -18,7 +18,6 @@ class KassaBalanceCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 6),
           Text(
             data.title,
             style: const TextStyle(
@@ -37,7 +36,7 @@ class KassaBalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _BalanceRow(label: "\$", valueText: data.usd.toStringAsFixed(2)),
+          _BalanceRow(valueText: "\$${data.usd.toStringAsFixed(2)}"),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
@@ -48,11 +47,13 @@ class KassaBalanceCard extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: const Color(0xFFF4C747),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)),
               ),
               child: const Text(
-                "Kirim qo‘shish",
-                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                "Kirim qo'shish",
+                style:
+                TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -63,46 +64,28 @@ class KassaBalanceCard extends StatelessWidget {
 }
 
 class _BalanceRow extends StatelessWidget {
-  final String label;
   final String valueText;
-
-  const _BalanceRow({required this.label, required this.valueText});
+  const _BalanceRow({required this.valueText});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 46,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF5A5A5A),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+    return Container(
+      width: double.infinity,
+      height: 44,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F1F1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        valueText,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF3F3F3F),
         ),
-        Expanded(
-          child: Container(
-            height: 44,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F1F1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              valueText,
-              style: const TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF3F3F3F),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

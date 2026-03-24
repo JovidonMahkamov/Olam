@@ -10,9 +10,9 @@ class SaleSelectedItemModel {
   final String? imageUrl;
 
   /// Miqdorlar
-  final int soldPachka;
-  final int soldDona;
-  final int soldMetr;
+  final double soldPachka;
+  final double soldDona;
+  final double soldMetr;
 
   /// Admin narxlar (readonly ko‘rsatish uchun)
   final double adminPriceDonaUsd;

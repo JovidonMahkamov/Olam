@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:olam/core/route/route_names.dart';
 
 import '../features/home/presentation/pages/qr_scanner_page.dart';
 
@@ -67,8 +68,7 @@ class _OlamDrawerState extends State<OlamDrawer> {
               icon: Icons.groups_2_outlined,
               title: "Mijozlar",
               onTap: () {
-                Navigator.pop(context);
-                // TODO: mijozlar page
+                Navigator.pushNamed(context, RouteNames.customerPage);
               },
             ),
             _DrawerItem(

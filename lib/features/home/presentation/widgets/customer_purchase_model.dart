@@ -1,21 +1,21 @@
 class CustomerPurchaseModel {
-  final String id;
-  final String productId;
-
-  // mahsulot
+  final String id;         // sotuv_id
+  final String productId;  // mahsulot_id
   final String productName;
-  final String productCode; // masalan: Q 10 (A001738)
-  final String imageAssetOrUrl; // hozircha asset ishlatamiz
+  final String productCode;
+  final String? imageUrl;
 
-  // miqdorlar
-  final int qtyDona;
-  final int qtyPachka;
+  // miqdorlar (sotib olingan)
+  final double qtyDona;
+  final double qtyPachka;
+  final double qtyMetr;
 
   // narxlar
-  final double priceUsd; // NARX
-  double get totalUsd => priceUsd * qtyDona; // soddalashtirib: dona bo‘yicha
+  final double narxMetrUsd;
+  final double narxPachkaUsd;
+  final double narxDonaUsd;
+  final double jamiUsd;
 
-  // qarz info (shu mahsulot savdosida qarz bo‘lganmi)
   final bool hasDebt;
 
   const CustomerPurchaseModel({
@@ -23,10 +23,35 @@ class CustomerPurchaseModel {
     required this.productId,
     required this.productName,
     required this.productCode,
-    required this.imageAssetOrUrl,
+    this.imageUrl,
     required this.qtyDona,
     required this.qtyPachka,
-    required this.priceUsd,
-    required this.hasDebt,
+    required this.qtyMetr,
+    required this.narxMetrUsd,
+    required this.narxPachkaUsd,
+    required this.narxDonaUsd,
+    required this.jamiUsd,
+    this.hasDebt = false,
   });
+
+  factory CustomerPurchaseModel.fromElementJson(
+      Map<String, dynamic> e,
+      Map<String, dynamic> sotuv,
+      ) {
+    return CustomerPurchaseModel(
+      id:           sotuv['id'].toString(),
+      productId:    e['mahsulot_id'].toString(),
+      productName:  e['mahsulot_nomi'] ?? '',
+      productCode:  '',
+      imageUrl:     e['rasm_url'],
+      qtyDona:      (e['dona'] ?? 0).toDouble(),
+      qtyPachka:    (e['pachtka'] ?? 0).toDouble(),
+      qtyMetr:      (e['metr'] ?? 0).toDouble(),
+      narxMetrUsd:  (e['narx_metr'] ?? e['narx_usd'] ?? 0).toDouble(),
+      narxPachkaUsd:(e['narx_pochka'] ?? e['narx_usd'] ?? 0).toDouble(),
+      narxDonaUsd:  (e['narx_usd'] ?? 0).toDouble(),
+      jamiUsd:      (e['jami_usd'] ?? 0).toDouble(),
+      hasDebt:      (sotuv['qarz_usd'] ?? 0) > 0,
+    );
+  }
 }

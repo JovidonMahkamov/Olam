@@ -88,17 +88,24 @@ class _CompleteSaleDialogState extends State<CompleteSaleDialog> {
   }
 
   bool get _isOverPay => _enteredAmount > _totalCurrentCurrency;
+  bool get _isFullDebt => _enteredAmount == 0;
   bool get _hasDebt => _enteredAmount > 0 && _enteredAmount < _totalCurrentCurrency;
 
   bool get _canFinish {
-    if (_enteredAmount <= 0) return false;
     if (_isOverPay) return false;
 
+    // To'liq qarzga — faqat izoh majburiy
+    if (_isFullDebt) {
+      return _noteCtrl.text.trim().isNotEmpty;
+    }
+
+    // Qisman qarz — SMS + izoh majburiy
     if (_hasDebt) {
       final hasNote = _noteCtrl.text.trim().isNotEmpty;
-      return _sms && hasNote; //  qarz bo‘lsa shart
+      return _sms && hasNote;
     }
-    return true; //  to‘liq to‘langan bo‘lsa
+
+    return true; // To'liq to'langan
   }
 
   PayType get _selectedPayType {

@@ -98,10 +98,11 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
     super.dispose();
   }
 
-  int _parseOptionalInt(String text) {
+  // ✅ double — server 43.1, 4.2 kabi decimal qaytaradi
+  double _parseOptionalQty(String text) {
     final t = text.trim();
     if (t.isEmpty) return 0;
-    return int.tryParse(t) ?? -1; // -1 invalid
+    return double.tryParse(t.replaceAll(',', '.')) ?? -1;
   }
 
   double _parseOptionalDouble(String text) {
@@ -113,7 +114,7 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
   String? _qtyValidator(String? v) {
     final t = (v ?? '').trim();
     if (t.isEmpty) return null; // optional
-    final n = int.tryParse(t);
+    final n = double.tryParse(t.replaceAll(',', '.'));
     if (n == null) return "Faqat son kiriting";
     if (n < 0) return "Manfiy son bo‘lmaydi";
     return null;
@@ -128,16 +129,16 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
     return null;
   }
 
-  bool get _hasPachka => _parseOptionalInt(_pachkaCtrl.text) > 0;
-  bool get _hasDona => _parseOptionalInt(_donaCtrl.text) > 0;
-  bool get _hasMetr => _parseOptionalInt(_metrCtrl.text) > 0;
+  bool get _hasPachka => _parseOptionalQty(_pachkaCtrl.text) > 0;
+  bool get _hasDona => _parseOptionalQty(_donaCtrl.text) > 0;
+  bool get _hasMetr => _parseOptionalQty(_metrCtrl.text) > 0;
 
   int get _unitCount => (_hasPachka ? 1 : 0) + (_hasDona ? 1 : 0) + (_hasMetr ? 1 : 0);
 
   void _recalc() {
-    final soldPachka = _parseOptionalInt(_pachkaCtrl.text);
-    final soldDona = _parseOptionalInt(_donaCtrl.text);
-    final soldMetr = _parseOptionalInt(_metrCtrl.text);
+    final soldPachka = _parseOptionalQty(_pachkaCtrl.text);
+    final soldDona = _parseOptionalQty(_donaCtrl.text);
+    final soldMetr = _parseOptionalQty(_metrCtrl.text);
 
     // invalid parse bo'lsa chiqib ketamiz
     if (soldPachka < 0 || soldDona < 0 || soldMetr < 0) {
@@ -162,9 +163,9 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final soldPachka = _parseOptionalInt(_pachkaCtrl.text);
-    final soldDona = _parseOptionalInt(_donaCtrl.text);
-    final soldMetr = _parseOptionalInt(_metrCtrl.text);
+    final soldPachka = _parseOptionalQty(_pachkaCtrl.text);
+    final soldDona = _parseOptionalQty(_donaCtrl.text);
+    final soldMetr = _parseOptionalQty(_metrCtrl.text);
 
     if (soldPachka < 0 || soldDona < 0 || soldMetr < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -319,12 +320,6 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
                 _Label("Pachka Miqdor"),
                 const SizedBox(height: 6),
                 _Field(controller: _pachkaCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.number, validator: _qtyValidator),
-
-                const SizedBox(height: 10),
-                _Label("Dona Miqdor)"),
-                const SizedBox(height: 6),
-                _Field(controller: _donaCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.number, validator: _qtyValidator),
-
                 const SizedBox(height: 10),
                 _Label("Metr Miqdor)"),
                 const SizedBox(height: 6),
@@ -337,9 +332,6 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
                 _Label("Metr narxi"),
                 const SizedBox(height: 6),
                 _Field(controller: _adminPriceMetrCtrl, hint: "Metr narxi (admin)", readOnly: true),
-                _Label("Dona narxi"),
-                const SizedBox(height: 8),
-                _Field(controller: _adminPriceDonaCtrl, hint: "Dona narxi (admin)", readOnly: true),
                 _Label("Pachka narxi"),
                 const SizedBox(height: 8),
                 _Field(controller: _adminPricePachkaCtrl, hint: "Pachka narxi (admin)", readOnly: true),
@@ -349,13 +341,6 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
                 _Field(
                   controller: _sellPriceMetrCtrl,
                   hint: "Metr narxini kiriting",
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: _priceValidator,
-                ),_Label("Dona narxini kiriting"),
-                const SizedBox(height: 8),
-                _Field(
-                  controller: _sellPriceDonaCtrl,
-                  hint: "Dona narxini kiriting",
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: _priceValidator,
                 ),

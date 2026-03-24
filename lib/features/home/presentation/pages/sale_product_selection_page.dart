@@ -7,10 +7,15 @@ class SaleProductSelectionPage extends StatefulWidget {
   final List<SaleProductModel> products;
   const SaleProductSelectionPage({super.key,required this.products});
 
-  static Future<SaleSelectedItemModel?> open(BuildContext context) {
+  static Future<SaleSelectedItemModel?> open(
+      BuildContext context, {
+        List<SaleProductModel> products = const [],
+      }) {
     return Navigator.push<SaleSelectedItemModel>(
       context,
-      MaterialPageRoute(builder: (_) =>  SaleProductSelectionPage(products: [],)),
+      MaterialPageRoute(
+        builder: (_) => SaleProductSelectionPage(products: products),
+      ),
     );
   }
 
@@ -29,6 +34,7 @@ class _SaleProductSelectionPageState extends State<SaleProductSelectionPage> {
     super.initState();
     _allProducts = List<SaleProductModel>.from(widget.products);
     _filteredProducts = List<SaleProductModel>.from(_allProducts);
+    _searchCtrl.addListener(_filter);
   }
 
   @override

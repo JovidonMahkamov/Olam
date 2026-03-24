@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 class ElevatedWidget extends StatelessWidget {
   final double? size;
-  final VoidCallback onPressed;
+  final void Function()? onPressed;
   final String text;
   final Color backgroundColor;
   final Color textColor;

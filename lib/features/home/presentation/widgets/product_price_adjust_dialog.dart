@@ -319,11 +319,11 @@ class _ProductPriceAdjustDialogState extends State<ProductPriceAdjustDialog> {
 
                 _Label("Pachka Miqdor"),
                 const SizedBox(height: 6),
-                _Field(controller: _pachkaCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.number, validator: _qtyValidator),
+                _Field(controller: _pachkaCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.numberWithOptions(decimal: true), validator: _qtyValidator),
                 const SizedBox(height: 10),
                 _Label("Metr Miqdor)"),
                 const SizedBox(height: 6),
-                _Field(controller: _metrCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.number, validator: _qtyValidator),
+                _Field(controller: _metrCtrl, hint: "Miqdor kiriting", keyboardType: TextInputType.numberWithOptions(decimal: true), validator: _qtyValidator),
 
                 const SizedBox(height: 14),
                 const Divider(height: 1),

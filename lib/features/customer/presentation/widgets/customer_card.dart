@@ -35,7 +35,7 @@ class CustomerCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                customer.fish,
+                customer.fish??"",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -58,7 +58,7 @@ class CustomerCard extends StatelessWidget {
             children: [
               const Icon(Icons.phone, color: Colors.orange),
               const SizedBox(width: 8),
-              Text(customer.telefon),
+              Text(customer.telefon??""),
             ],
           ),
 
@@ -69,7 +69,7 @@ class CustomerCard extends StatelessWidget {
             children: [
               const Icon(Icons.location_on, color: Colors.orange),
               const SizedBox(width: 8),
-              Text(customer.manzil),
+              Text(customer.manzil??""),
             ],
           ),
             const SizedBox(height: 8),

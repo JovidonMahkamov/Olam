@@ -36,7 +36,6 @@ class KassaBalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _BalanceRow(valueText: "\$${data.usd.toStringAsFixed(2)}"),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,

@@ -55,16 +55,15 @@ class _KassaPageState extends State<KassaPage> {
 
                 final cards = kassalar.map((k) => KassaBalanceCardData(
                   title:   k.turi[0].toUpperCase() + k.turi.substring(1),
-                  usd:     k.balansUsd,
                   kassaId: k.id,
                   payType: k.payType,
                 )).toList();
 
                 final displayCards = cards.isEmpty
                     ? [
-                  KassaBalanceCardData(title: 'Naqd',    usd: 0, kassaId: 1, payType: PayType.naqd),
-                  KassaBalanceCardData(title: 'Terminal', usd: 0, kassaId: 2, payType: PayType.terminal),
-                  KassaBalanceCardData(title: 'Click',    usd: 0, kassaId: 3, payType: PayType.click),
+                  KassaBalanceCardData(title: 'Naqd',     kassaId: 1, payType: PayType.naqd),
+                  KassaBalanceCardData(title: 'Terminal', kassaId: 2, payType: PayType.terminal),
+                  KassaBalanceCardData(title: 'Click',     kassaId: 3, payType: PayType.click),
                 ]
                     : cards;
 

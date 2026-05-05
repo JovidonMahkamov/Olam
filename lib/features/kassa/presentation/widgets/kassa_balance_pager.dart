@@ -6,13 +6,11 @@ import 'package:olam/features/kassa/presentation/widgets/kassa_dots_indicator.da
 @immutable
 class KassaBalanceCardData {
   final String title;
-  final double usd;
   final int kassaId;
   final PayType payType;
 
   const KassaBalanceCardData({
     required this.title,
-    required this.usd,
     required this.kassaId,
     required this.payType,
   });

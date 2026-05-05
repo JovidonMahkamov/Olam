@@ -4,10 +4,10 @@ import 'package:olam/features/customer/domain/entity/customer_entity.dart';
 class CustomerModel extends CustomerEntity {
   CustomerModel({
     required super.id,
-    required super.fish,
+     super.fish,
     required super.turi,
-    required super.telefon,
-    required super.manzil,
+     super.telefon,
+     super.manzil,
     required super.qarzdorlik,
     required super.faol,
     required super.yaratilgan,
